@@ -1,3 +1,8 @@
+# Note
+
+Experimental refactoring of caolan's code. Nothing to see yet :)
+
+
 # Forms
 
 Constructing a good form by hand is a lot of work. Popular frameworks like
