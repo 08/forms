@@ -32,72 +32,81 @@ bug reports or advice. Especially on the following key areas:
 
 ## Example
 
-Creating an example registration form:
-
-    var forms = require('forms'),
-        fields = forms.fields,
-        validators = forms.validators;
-
-    var reg_form = forms.create({
-        username: fields.string({required: true}),
-        password: fields.password({required: true}),
-        confirm:  fields.password({
-            required: true,
-            validators: [validators.matchField('password')]
-        }),
-        email: fields.email()
-    });
-
-Rendering a HTML representation of the form:
-
-    reg_form.toHTML();
-
-Would produce:
-
-    <div class="field required">
-        <label for="id_username">Username</label>
-        <input type="text" name="username" id="id_username" value="test" />
-    </div>
-    <div class="field required">
-        <label for="id_password">Password</label>
-        <input type="password" name="password" id="id_password" value="test" />
-    </div>
-    <div class="field required">
-        <label for="id_confirm">Confirm</label>
-        <input type="password" name="confirm" id="id_confirm" value="test" />
-    </div>
-    <div class="field">
-        <label for="id_email">Email</label>
-        <input type="text" name="email" id="id_email" />
-    </div>
-
-You'll notice you have to provide your own form tags and submit button, its
-more flexible this way ;)
-
-Handling a request:
-
-    function myView(req, res){
-
-        reg_form.handle(req, {
-            success: function(form){
-                // there is a request and the form is valid
-                // form.data contains the submitted data
-            },
-            error: function(form){
-                // the data in the request didn't validate,
-                // calling form.toHTML() again will render the error messages
-            },
-            empty: function(form){
-                // there was no form data in the request
-            }
-        });
-
+    /**
+     * Handles a GET/POST request for a form.
+     */
+    function handle_request(request, response, next) {
+        forms = require('forms');
+        var form = new forms.Form(example_form, 'item_example');
     }
 
-That's it! For more detailed / working examples look in the example folder.
-An example server using the form above can be run by doing:
+    /**
+     * Creates example form definition.
+     *
+     * @param {param}
+     *   The parameter passed in as second argument to Form().
+     * @param {callback}
+     *   The function to pass the form the definition on to.
+     */
+    function example_form(param, callback) {
 
-    node example/simple.js
+        // Load an item from the database. This can be asynchronous.
+        item.load(id, function(err, item) {
+
+            // Build the form definition and pass it on to the callback.
+            callback(err, {
+
+                /**
+                 * Returns an object describing a form. Mandatory.
+                 */
+                fields: function() {
+                    var forms = require('forms');
+                    var field_def = {};
+                    // Generate form depending on loaded item.
+                    for (var i in items.attributes) {
+                        var field = items.attributes[i];
+                        field_def[field.id] = forms.fields.string({
+                            label: field.label,
+                            value: item.data[field.id]
+                        });
+                    }
+                    return field_def;
+                },
+
+                /**
+                 * Validates a form. Optional.
+                 */
+                validate: function(form) { /* TODO */ },
+
+                 /**
+                  * Submits form data. Mandatory.
+                  */
+                submit: function(form) {
+                    for (var i in item.attributes) {
+                        if (form.data[i]) {
+                            item.data[i] = form.data[i];
+                        }
+                    }
+                    item.save();
+                },
+
+                /**
+                 * Renders form. Mandatory.
+                 */
+                render: function(form, request, response, next) {
+                    response.render(
+                        'content', {
+                            locals: item.renderForm(request, form)
+                    });
+                },
+
+                /**
+                 * Defines where a form should redirect to after submission.
+                 */
+                redirect: '/' + entry.data._id
+            });
+        });
+    }
 
 ## Available types
 
@@ -153,11 +162,6 @@ components following the same API.
 A more detailed look at the methods and attributes available. Most of these
 you will not need to use directly.
 
-### forms.create(fields)
-Converts a form definition (an object literal containing field objects) into a
-form object.
-
-
 ### Form object
 
 #### Attributes
@@ -179,6 +183,8 @@ for highly customised markup.
 
 
 ### Bound Form object
+
+TODO: not accurate atm.
 
 Contains the same methods as the unbound form, plus:
 
