@@ -73,11 +73,6 @@ bug reports or advice. Especially on the following key areas:
                     return field_def;
                 },
 
-                /**
-                 * Validates a form. Optional.
-                 */
-                validate: function(form) { /* TODO */ },
-
                  /**
                   * Submits form data. Mandatory.
                   */
