@@ -125,6 +125,7 @@ components following the same API.
 * email
 * url
 * submit
+* html
 
 ### Widgets
 
@@ -138,6 +139,7 @@ components following the same API.
 * multipleRadio
 * multipleSelect
 * submit
+* html
 
 ### Validators
 
