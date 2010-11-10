@@ -55,6 +55,15 @@ bug reports or advice. Especially on the following key areas:
 
             // Build the form definition and pass it on to the callback.
             callback(err, {
+                /**
+                 * Form method. Optional. Default: POST.
+                 */
+                method: 'GET',
+
+                /**
+                 * Form action. Optional. Default: ''.
+                 */
+                action: '/update',
 
                 /**
                  * Returns an object describing a form. Mandatory.
@@ -115,6 +124,7 @@ components following the same API.
 * password
 * email
 * url
+* submit
 
 ### Widgets
 
@@ -127,6 +137,7 @@ components following the same API.
 * multipleCheckbox
 * multipleRadio
 * multipleSelect
+* submit
 
 ### Validators
 
