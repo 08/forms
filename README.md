@@ -79,21 +79,21 @@ bug reports or advice. Especially on the following key areas:
                             value: item.data[field.id]
                         });
                     }
-                    return field_def;
-                },
-
-                 /**
-                  * Submits form data. Mandatory.
-                  */
-                submit: function(form, request, response, next) {
-                    for (var i in item.attributes) {
-                        if (form.data[i]) {
-                            item.data[i] = form.data[i];
+                    // Add a submit button.
+                    field_def['submit'] = forms.fields.submit({
+                        value: 'Submit',
+                        submit: function(form, request, response, next) {
+                            for (var i in item.attributes) {
+                                if (form.data[i]) {
+                                    item.data[i] = form.data[i];
+                                }
+                            }
+                            item.save(function() {
+                                response.redirect('/' + item.path)
+                            });
                         }
-                    }
-                    item.save(function() {
-                        response.redirect('/' + item.path)
                     });
+                    return field_def;
                 },
 
                 /**
