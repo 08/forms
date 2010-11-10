@@ -81,13 +81,15 @@ bug reports or advice. Especially on the following key areas:
                  /**
                   * Submits form data. Mandatory.
                   */
-                submit: function(form) {
+                submit: function(form, request, response, next) {
                     for (var i in item.attributes) {
                         if (form.data[i]) {
                             item.data[i] = form.data[i];
                         }
                     }
-                    item.save();
+                    item.save(function() {
+                        response.redirect('/' + item.path)
+                    });
                 },
 
                 /**
@@ -98,12 +100,7 @@ bug reports or advice. Especially on the following key areas:
                         'content', {
                             locals: item.renderForm(request, form)
                     });
-                },
-
-                /**
-                 * Defines where a form should redirect to after submission.
-                 */
-                redirect: '/' + entry.data._id
+                }
             });
         });
     }
