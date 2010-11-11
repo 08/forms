@@ -37,64 +37,65 @@ bug reports or advice. Especially on the following key areas:
      */
     function handle_request(request, response, next) {
         forms = require('forms');
-        var form = new forms.Form(function(callback){
+        var form = new forms.Form();
 
-            // Load an item from the database. This can be asynchronous.
-            item.load(function(item) {
+        // Load an item from the database. For the sake of this example we
+        // pretend this load operation is asynchronous and its result is needed
+        // to build the form.
+        item.load(function(item) {
 
-                // Build the form definition and pass it on to the callback.
-                callback({
-                    /**
-                     * Form method. Optional. Default: POST.
-                     */
-                    method: 'GET',
+            // Build the form definition and pass it on to the callback.
+            form.setDef({
+                /**
+                 * Form method. Optional. Default: POST.
+                 */
+                method: 'GET',
 
-                    /**
-                     * Form action. Optional. Default: ''.
-                     */
-                    action: '/update',
+                /**
+                 * Form action. Optional. Default: ''.
+                 */
+                action: '/update',
 
-                    /**
-                     * Returns an object describing a form. Mandatory.
-                     */
-                    fields: function() {
-                        var forms = require('forms');
-                        var field_def = {};
-                        // Generate form depending on loaded item.
-                        for (var i in items.attributes) {
-                            var field = items.attributes[i];
-                            field_def[field.id] = forms.fields.string({
-                                label: field.label,
-                                value: item.data[field.id]
-                            });
-                        }
-                        // Add a submit button.
-                        field_def['submit'] = forms.fields.submit({
-                            value: 'Submit',
-                            submit: function(form, request, response, next) {
-                                for (var i in item.attributes) {
-                                    if (form.data[i]) {
-                                        item.data[i] = form.data[i];
-                                    }
-                                }
-                                item.save(function() {
-                                    response.redirect('/' + item.path)
-                                });
-                            }
-                        });
-                        return field_def;
-                    },
-
-                    /**
-                     * Renders form. Mandatory.
-                     */
-                    render: function(form, request, response, next) {
-                        response.render(
-                            'content', {
-                                locals: item.renderForm(request, form)
+                /**
+                 * Returns an object describing a form. Mandatory.
+                 */
+                fields: function() {
+                    var forms = require('forms');
+                    var field_def = {};
+                    // Generate form depending on loaded item.
+                    for (var i in items.attributes) {
+                        var field = items.attributes[i];
+                        field_def[field.id] = forms.fields.string({
+                            label: field.label,
+                            value: item.data[field.id]
                         });
                     }
-                });
+                    // Add a submit button.
+                    field_def['submit'] = forms.fields.submit({
+                        value: 'Submit',
+                        submit: function(form, request, response, next) {
+                            for (var i in item.attributes) {
+                                if (form.data[i]) {
+                                    item.data[i] = form.data[i];
+                                }
+                            }
+                            item.save(function() {
+                                response.redirect('/' + item.path)
+                            });
+                        }
+                    });
+                    return field_def;
+                },
+
+                /**
+                 * Renders form. Mandatory.
+                 */
+                render: function(form, request, response, next) {
+                    response.render(
+                        'content', {
+                            locals: item.renderForm(request, form)
+                    });
+                }
             });
         });
     }
