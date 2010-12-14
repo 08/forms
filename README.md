@@ -9,8 +9,6 @@ Constructing a good form by hand is a lot of work. Popular frameworks like
 Ruby on Rails and Django contain code to make this process less painful.
 This module is an attempt to provide the same sort of helpers for node.js.
 
-    npm install forms
-
 ## Contribute
 
 This code is still in its infancy, and I'd really appreciate any contributions,
@@ -32,73 +30,78 @@ bug reports or advice. Especially on the following key areas:
 
 ## Example
 
-    /**
-     * Handles a GET/POST request for a form.
-     */
-    function handle_request(request, response, next) {
-        forms = require('forms');
-        var form = new forms.Form();
+    // Generate a new form.
+    var userLoginForm = forms.Form.create({
+        // Provide a view object to use with response.render.
+        // If none is provided, output will simply be printed without
+        // themeing.
+        view: view('content'),
 
-        // Load an item from the database. For the sake of this example we
-        // pretend this load operation is asynchronous and its result is needed
-        // to build the form.
-        item.load(function(item) {
+        // Local variables for use in the view.
+        // The form output will be placed in the 'content'
+        // local.
+        locals: {
+          title: 'Login',
+          pageTitle: 'Login',
+        },
 
-            // Build the form definition and pass it on to the callback.
-            form.setDef({
-                /**
-                 * Form method. Optional. Default: POST.
-                 */
-                method: 'GET',
+        // Fields to display in form.
+        fields: {
+            name: forms.fields.string({
+                label: 'Name',
+                required: true,
+                widget: forms.widgets.text({classes: ['text']})
+            }),
+            password: forms.fields.password({
+                label: 'Password',
+                required: true,
+                widget: forms.widgets.password({classes: ['text password']})
+            }),
+            login: forms.fields.submit({
+                value: 'Login'
+            }),
+        },
 
-                /**
-                 * Form action. Optional. Default: ''.
-                 */
-                action: '/update',
+    });
 
-                /**
-                 * Returns an object describing a form. Mandatory.
-                 */
-                fields: function() {
-                    var forms = require('forms');
-                    var field_def = {};
-                    // Generate form depending on loaded item.
-                    for (var i in items.attributes) {
-                        var field = items.attributes[i];
-                        field_def[field.id] = forms.fields.string({
-                            label: field.label,
-                            value: item.data[field.id]
-                        });
-                    }
-                    // Add a submit button.
-                    field_def['submit'] = forms.fields.submit({
-                        value: 'Submit',
-                        submit: function(form, request, response, next) {
-                            for (var i in item.attributes) {
-                                if (form.data[i]) {
-                                    item.data[i] = form.data[i];
-                                }
-                            }
-                            item.save(function() {
-                                response.redirect('/' + item.path)
-                            });
-                        }
-                    });
-                    return field_def;
-                },
+    // Forms are event emitters, listen for the following events:
 
-                /**
-                 * Renders form. Mandatory.
-                 */
-                render: function(form, request, response, next) {
-                    response.render(
-                        'content', {
-                            locals: item.renderForm(request, form)
-                    });
-                }
-            });
+    // Validate the form.
+    userLoginForm.on('validate', function(req, res) {
+        user = require('./user');
+        if (user.loadUser(this.instance.name, this.instance.password) === null) {
+            // Set the error for each individual field.
+            // Any errors will cause validation to fail.
+            this.errors['name'] = 'Invalid login credentials';
+            this.errors['password'] = true;
+        }
+    });
+
+    // Actions to take when validation succeeds.
+    userLoginForm.on('success', function(req, res) {
+        var user = require('./user');
+        var name = this.instance.name || null;
+        var password = this.instance.password || null;
+
+        // Redirect once we have been logged in.
+        user.authenticate(name, password, req, function(err) {
+            if (!err) {
+                console.log('Logged in ' + name);
+                res.redirect('/user');
+            }
         });
-    }
+    });
+
+    // Page handlers for this form.
+    app.get('/login', userLoginForm.load(), function(req, res) {
+      req.form.render(req, res); // display the form on get requests
+    });
+
+    app.post('/login', userLoginForm.load(), function(req, res) {
+      req.form.process(req, res); // process the form on submission
+    });
+
+
 
 ## Available types
 
@@ -165,45 +168,16 @@ you will not need to use directly.
 * fields - Object literal containing the field objects passed to the create
   function
 
-#### form.handle(req, callbacks)
-Inspects a request or object literal and binds any data to the correct fields.
-
-#### form.bind(data)
-Binds data to correct fields, returning a new bound form object.
-
 #### form.toHTML(iterator)
 Runs toHTML on each field returning the result. If an iterator is specified,
 it is called for each field with the field name and object as its arguments,
 the iterator's results are concatenated to create the HTML output, allowing
 for highly customised markup.
 
-
-### Bound Form object
-
-TODO: not accurate atm.
-
-Contains the same methods as the unbound form, plus:
-
-#### Attributes
-
-* data - Object containing all the parsed data keyed by field name
-* fields - Object literal containing the field objects passed to the create
-  function
-
-#### form.validate(callback)
-Calls validate on each field in the bound form and returns the resulting form
-object to the callback.
 
 #### form.isValid()
 Checks all fields for an error attribute. Returns false if any exist, otherwise
 returns true.
-
-#### form.toHTML(iterator)
-Runs toHTML on each field returning the result. If an iterator is specified,
-it is called for each field with the field name and object as its arguments,
-the iterator's results are concatenated to create the HTML output, allowing
-for highly customised markup.
-
 
 ### Field object
 
@@ -220,11 +194,6 @@ for highly customised markup.
 
 Coerces the raw data from the request into the correct format for the field,
 returning the result, e.g. '123' becomes 123 for the number field.
-
-#### field.bind(rawdata)
-
-Returns a new bound field object. Calls parse on the data and stores in the
-bound field's data attribute, stores the raw value in the value attribute.
 
 #### field.errorHTML()
 
@@ -252,16 +221,6 @@ e.g. ['field', 'required', 'error'] for a required field with an error message.
 Calls the iterator with the name and field object as arguments. Defaults to
 using forms.render.div as the iterator, which returns a HTML representation of
 the field label, error message and widget wrapped in a div.
-
-### Bound Field object
-
-_same as field object, but with a few extensions_
-
-#### Attributes
-
-* value - The raw value from the request data
-* data - The request data coerced to the correct format for this field
-* error - An error message if the field fails validation
 
 #### validate(callback)
 
