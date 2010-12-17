@@ -3,8 +3,7 @@ var forms = require('../lib/forms'),
     Form = forms.Form;
 
 
-var testField = function(field){
-
+(function(field){
     function _test_field(field_def, instance) {
         var myfields = {}
         myfields[field] = fields[field](field_def || {});
@@ -172,202 +171,188 @@ var testField = function(field){
         assert.eql(f.data, 'some data parsed');
         assert.eql(f.error, undefined);
     };
-};
 
-testField('string');
-exports['string parse'] = function(assert){
-    var f = fields.string();
+    if (field === 'string') {
 
-    delete f.value;
+        exports['string parse'] = function(assert){
+            assert.eql(fields.string().parse(), '');
+            assert.eql(fields.string().parse(null), '');
+            assert.eql(fields.string().parse(0), '0');
+            assert.eql(fields.string().parse(''), '');
+            assert.eql(fields.string().parse('some string'), 'some string');
+            
+        };
 
-    f.value = undefined;
-    assert.eql(f.parse(), '');
+        exports['string toHTML'] = function(assert){
+            var f = _test_field({});
+            assert.eql(
+                f.toHTML(field),
+                '<div class="field">' +
+                '<label for="id_string">String</label>' +
+                '<input type="text" name="string" id="id_string" class="text" />' +
+                '</div>'
+            );
+            f.widget.toHTML = function(name, field){
+                assert.eql(name, 'string');
+                assert.eql(field, f);
+            };
+            f.toHTML(field);
+        };
 
-    f.value = null;
-    assert.eql(f.parse(), '');
 
-    f.value = 0;
-    assert.eql(f.parse(), '0');
+    }
+    else if (field === 'number') {
 
-    f.value = '';
-    assert.eql(f.parse(), '');
+        exports['number parse'] = function(assert){
+            assert.ok(isNaN(fields.number().parse()));
+            assert.ok(isNaN(fields.number().parse(null)));
+            assert.eql(fields.number().parse(0), 0);
+            assert.ok(isNaN(fields.number().parse('')));
+            assert.eql(fields.number().parse('123'), 123);
 
-    f.value = 'some string';
-    assert.eql(f.parse(), 'some string');
-    
-};
+        };
 
-/*
-exports['string toHTML'] = function(assert){
-    test.expect(3);
-    assert.eql(
-        fields.string().toHTML('fieldname'),
-        '<div class="field">' +
-            '<label for="id_fieldname">Fieldname</label>' +
-            '<input type="text" name="fieldname" id="id_fieldname" />' +
-        '</div>'
-    );
-    var f = fields.string();
-    f.widget.toHTML = function(name, field){
-        assert.eql(name, 'fieldname');
-        assert.eql(field, f);
-        
-    };
-    f.toHTML('fieldname');
-};
+        exports['number toHTML'] = function(assert){
+            var f = _test_field({});
+            assert.eql(
+                f.toHTML(field),
+                '<div class="field">' +
+                '<label for="id_number">Number</label>' +
+                '<input type="text" name="number" id="id_number" class="text" />' +
+                '</div>'
+            );
 
-*/
-testField('number');
-/*
-exports['number parse'] = function(assert){
-    assert.ok(isNaN(fields.number().parse()));
-    assert.ok(isNaN(fields.number().parse(null)));
-    assert.eql(fields.number().parse(0), 0);
-    assert.ok(isNaN(fields.number().parse('')));
-    assert.eql(fields.number().parse('123'), 123);
-    
-};
+        };
 
-exports['number toHTML'] = function(assert){
-    assert.eql(
-        fields.number().toHTML('fieldname'),
-        '<div class="field">' +
-            '<label for="id_fieldname">Fieldname</label>' +
-            '<input type="text" name="fieldname" id="id_fieldname" />' +
-        '</div>'
-    );
-    
-};
-*/
+    }
+    else if (field === 'boolean') {
+        exports['boolean parse'] = function(assert){
+            assert.eql(fields.boolean().parse(), false);
+            assert.eql(fields.boolean().parse(null), false);
+            assert.eql(fields.boolean().parse(0), false);
+            assert.eql(fields.boolean().parse(''), false);
+            assert.eql(fields.boolean().parse('on'), true);
+            assert.eql(fields.boolean().parse('true'), true);
 
-testField('boolean');
-/*
-exports['boolean parse'] = function(assert){
-    assert.eql(fields.boolean().parse(), false);
-    assert.eql(fields.boolean().parse(null), false);
-    assert.eql(fields.boolean().parse(0), false);
-    assert.eql(fields.boolean().parse(''), false);
-    assert.eql(fields.boolean().parse('on'), true);
-    assert.eql(fields.boolean().parse('true'), true);
-    
-};
+        };
 
-exports['boolean toHTML'] = function(assert){
-    assert.eql(
-        fields.boolean().toHTML('fieldname'),
-        '<div class="field">' +
-            '<label for="id_fieldname">Fieldname</label>' +
-            '<input type="checkbox" name="fieldname" id="id_fieldname" />' +
-        '</div>'
-    );
-    
-};
-*/
-testField('email');
-/*
-exports['email parse'] = function(assert){
-    assert.eql(
-        fields.email().parse.toString(),
-        fields.string().parse.toString()
-    );
-    
-};
+        exports['boolean toHTML'] = function(assert){
+            var f = _test_field({});
+            assert.eql(
+                    f.toHTML(field),
+                    '<div class="field">' +
+                    '<input type="checkbox" name="boolean" id="id_boolean" class="checkbox" />' +
+                    '<label for="id_boolean">Boolean</label>' +
+                    '</div>'
+                    );
 
-exports['email toHTML'] = function(assert){
-    assert.eql(
-        fields.email().toHTML.toString(),
-        fields.string().toHTML.toString()
-    );
-    
-};
+        };
+    }
+    else if (field === 'email') {
+        exports['email parse'] = function(assert){
+            assert.eql(
+                    fields.email().parse.toString(),
+                    fields.string().parse.toString()
+                    );
 
-exports['email validators'] = function(assert){
-    assert.eql(
-        fields.email().validators[0].toString(),
-        forms.validators.email().toString()
-    );
-    var fn1 = function(){return 'one';};
-    var fn2 = function(){return 'two';};
-    var f = fields.email({validators: [fn1, fn2]});
-    assert.eql(
-        f.validators[0].toString(),
-        forms.validators.email().toString()
-    );
-    assert.eql(f.validators.slice(1), [fn1, fn2]);
-    
-};
-*/
-testField('password');
-/*
-exports['password parse'] = function(assert){
-    assert.eql(
-        fields.password().parse.toString(),
-        fields.string().parse.toString()
-    );
-    
-};
+        };
 
-exports['password toHTML'] = function(assert){
-    assert.eql(
-        fields.password().toHTML.toString(),
-        fields.string().toHTML.toString()
-    );
-    
-};
-*/
-testField('url');
-/*
-exports['url parse'] = function(assert){
-    assert.eql(
-        fields.url().parse.toString(),
-        fields.string().parse.toString()
-    );
-    
-};
+        exports['email toHTML'] = function(assert){
+            assert.eql(
+                    fields.email().toHTML.toString(),
+                    fields.string().toHTML.toString()
+                    );
 
-exports['url toHTML'] = function(assert){
-    assert.eql(
-        fields.url().toHTML.toString(),
-        fields.string().toHTML.toString()
-    );
-    
-};
+        };
 
-exports['url validators'] = function(assert){
-    assert.eql(
-        fields.url().validators[0].toString(),
-        forms.validators.url().toString()
-    );
-    var fn1 = function(){return 'one';};
-    var fn2 = function(){return 'two';};
-    var f = fields.url({validators: [fn1, fn2]});
-    assert.eql(
-        f.validators[0].toString(),
-        forms.validators.url().toString()
-    );
-    assert.eql(f.validators.slice(1), [fn1, fn2]);
-    
-};
-*/
-testField('array');
-/*
-exports['array parse'] = function(assert){
-    assert.eql(fields.array().parse(), []);
-    assert.eql(fields.array().parse(null), [null]);
-    assert.eql(fields.array().parse(0), [0]);
-    assert.eql(fields.array().parse(''), ['']);
-    assert.eql(fields.array().parse('abc'), ['abc']);
-    assert.eql(
-        fields.array().parse(['one','two','three']), ['one','two','three']
-    );
-    
-};
+        exports['email validators'] = function(assert){
+            assert.eql(
+                    fields.email().validators[0].toString(),
+                    forms.validators.email().toString()
+                    );
+            var fn1 = function(){return 'one';};
+            var fn2 = function(){return 'two';};
+            var f = _test_field({validators: [fn1, fn2]});
+            assert.eql(
+                    f.validators[0].toString(),
+                    forms.validators.email().toString()
+                    );
+            assert.eql(f.validators.slice(1), [fn1, fn2]);
 
-exports['array toHTML'] = function(assert){
-    assert.eql(
-        fields.array().toHTML.toString(),
-        fields.string().toHTML.toString()
-    );
-    
-};
-*/
+        };
+
+    }
+    else if (field === 'password') {
+        exports['password parse'] = function(assert){
+            assert.eql(
+                    fields.password().parse.toString(),
+                    fields.string().parse.toString()
+                    );
+
+        };
+
+        exports['password toHTML'] = function(assert){
+            assert.eql(
+                    fields.password().toHTML.toString(),
+                    fields.string().toHTML.toString()
+                    );
+
+        };
+    }
+    else if (field === 'url') {
+        exports['url parse'] = function(assert){
+            assert.eql(
+                    fields.url().parse.toString(),
+                    fields.string().parse.toString()
+                    );
+
+        };
+
+        exports['url toHTML'] = function(assert){
+            assert.eql(
+                    fields.url().toHTML.toString(),
+                    fields.string().toHTML.toString()
+                    );
+
+        };
+
+        exports['url validators'] = function(assert){
+            assert.eql(
+                    fields.url().validators[0].toString(),
+                    forms.validators.url().toString()
+                    );
+            var fn1 = function(){return 'one';};
+            var fn2 = function(){return 'two';};
+            var f = _test_field({ validators: [fn1, fn2] });
+            assert.eql(
+                    f.validators[0].toString(),
+                    forms.validators.url().toString()
+                    );
+            assert.eql(f.validators.slice(1), [fn1, fn2]);
+
+        };
+    }
+    else  if (field === 'array') {
+        exports['array parse'] = function(assert){
+            assert.eql(fields.array().parse(), []);
+            assert.eql(fields.array().parse(null), [null]);
+            assert.eql(fields.array().parse(0), [0]);
+            assert.eql(fields.array().parse(''), ['']);
+            assert.eql(fields.array().parse('abc'), ['abc']);
+            assert.eql(
+                    fields.array().parse(['one','two','three']), ['one','two','three']
+                    );
+
+        };
+
+        exports['array toHTML'] = function(assert){
+            assert.eql(
+                    fields.array().toHTML.toString(),
+                    fields.string().toHTML.toString()
+                    );
+
+        };
+    }
+    return arguments.callee;
+})('string')('number')('boolean')('email')('password')('url')('array');
+
