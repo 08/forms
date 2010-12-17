@@ -1,24 +1,24 @@
-var forms = require('forms');
+var forms = require('../lib/forms');
 
 var test_input = function(type){
-    return function(test){
-        test.equals(
+    return function(assert){
+        assert.eql(
             forms.widgets[type]().toHTML('field1'),
-            '<input type="' + type + '" name="field1" id="id_field1" />'
+            '<input type="' + type + '" name="field1" id="id_field1" class="' + type + '" />'
         );
         var w = forms.widgets[type]({classes: ['test1', 'test2', 'test3']});
-        test.equals(
+        assert.eql(
             w.toHTML('field2', {id:'form2_field2'}),
             '<input type="' + type + '" name="field2" id="form2_field2"' +
             ' class="test1 test2 test3" />'
         );
-        test.equals(
+        assert.eql(
             forms.widgets[type]().toHTML('field1', {value:'some value'}),
-            '<input type="' + type + '" name="field1" id="id_field1"' +
+            '<input type="' + type + '" name="field1" id="id_field1" class="' + type + '"' +
             ' value="some value" />'
         );
-        test.equals(forms.widgets[type]().type, type);
-        test.done();
+        assert.eql(forms.widgets[type]().type, type);
+        
     };
 };
 
@@ -26,41 +26,41 @@ exports['text'] = test_input('text');
 exports['password'] = test_input('password');
 exports['hidden'] = test_input('hidden');
 
-exports['checkbox'] = function(test){
-    test.equals(
+exports['checkbox'] = function(assert){
+    assert.eql(
         forms.widgets.checkbox().toHTML('field1'),
-        '<input type="checkbox" name="field1" id="id_field1" />'
+        '<input type="checkbox" name="field1" id="id_field1" class="checkbox" />'
     );
     var w = forms.widgets.checkbox({classes: ['test1', 'test2', 'test3']});
-    test.equals(
+    assert.eql(
         w.toHTML('field2', {id:'form2_field2'}),
         '<input type="checkbox" name="field2" id="form2_field2"' +
         ' class="test1 test2 test3" />'
     );
-    test.equals(
+    assert.eql(
         forms.widgets.checkbox().toHTML('field', {value:true}),
-        '<input type="checkbox" name="field" id="id_field" checked="checked" />'
+        '<input type="checkbox" name="field" id="id_field" class="checkbox" checked="checked" />'
     );
-    test.equals(
+    assert.eql(
         forms.widgets.checkbox().toHTML('field', {value:false}),
-        '<input type="checkbox" name="field" id="id_field" />'
+        '<input type="checkbox" name="field" id="id_field" class="checkbox" />'
     );
-    test.equals(forms.widgets.checkbox().type, 'checkbox');
-    test.done();
+    assert.eql(forms.widgets.checkbox().type, 'checkbox');
+    
 };
 
-exports['select'] = function(test){
-    test.equals(
+exports['select'] = function(assert){
+    assert.eql(
         forms.widgets.select().toHTML('name', {choices: {
             val1:'text1',
             val2:'text2'
         }}),
-        '<select name="name" id="id_name">' +
+        '<select name="name" id="id_name" class="select">' +
             '<option value="val1">text1</option>' +
             '<option value="val2">text2</option>' +
         '</select>'
     );
-    test.equals(
+    assert.eql(
         forms.widgets.select({classes: ['one', 'two']}).toHTML('name', {
             choices: {
                 val1:'text1',
@@ -74,16 +74,16 @@ exports['select'] = function(test){
             '<option value="val2" selected="selected">text2</option>' +
         '</select>'
     );
-    test.equals(forms.widgets.select().type, 'select');
-    test.done();
+    assert.eql(forms.widgets.select().type, 'select');
+    
 };
 
-exports['textarea'] = function(test){
-    test.equals(
+exports['textarea'] = function(assert){
+    assert.eql(
         forms.widgets.textarea().toHTML('name', {}),
-        '<textarea name="name" id="id_name"></textarea>'
+        '<textarea name="name" id="id_name" class="textarea"></textarea>'
     );
-    test.equals(
+    assert.eql(
         forms.widgets.textarea({
             classes: ['one', 'two'],
             rows: 20,
@@ -92,104 +92,104 @@ exports['textarea'] = function(test){
         '<textarea name="name" id="someid" class="one two" rows="20"' +
         ' cols="80">value</textarea>'
     );
-    test.equals(forms.widgets.textarea().type, 'textarea');
-    test.done();
+    assert.eql(forms.widgets.textarea().type, 'textarea');
+    
 };
 
-exports['multipleCheckbox'] = function(test){
+exports['multipleCheckbox'] = function(assert){
     var w = forms.widgets.multipleCheckbox();
     var field = {
         choices: {one:'Item one',two:'Item two',three:'Item three'},
         value: 'two'
     };
-    test.equals(
+    assert.eql(
         w.toHTML('name', field),
-        '<input type="checkbox" name="name" id="id_name_one" value="one">' +
+        '<input type="checkbox" name="name" id="id_name_one" class="checkbox multiple" value="one">' +
         '<label for="id_name_one">Item one</label>' +
-        '<input type="checkbox" name="name" id="id_name_two" value="two"' +
+        '<input type="checkbox" name="name" id="id_name_two" class="checkbox multiple" value="two"' +
         ' checked="checked">' +
         '<label for="id_name_two">Item two</label>' +
-        '<input type="checkbox" name="name" id="id_name_three" value="three">' +
+        '<input type="checkbox" name="name" id="id_name_three" class="checkbox multiple" value="three">' +
         '<label for="id_name_three">Item three</label>'
     );
-    test.equals(forms.widgets.multipleCheckbox().type, 'multipleCheckbox');
-    test.done();
+    assert.eql(forms.widgets.multipleCheckbox().type, 'multipleCheckbox');
+    
 };
 
-exports['multipleCheckbox mutliple selected'] = function(test){
+exports['multipleCheckbox mutliple selected'] = function(assert){
     var w = forms.widgets.multipleCheckbox();
     var field = {
         choices: {one:'Item one',two:'Item two',three:'Item three'},
         value: ['two', 'three']
     };
-    test.equals(
+    assert.eql(
         w.toHTML('name', field),
-        '<input type="checkbox" name="name" id="id_name_one" value="one">' +
+        '<input type="checkbox" name="name" id="id_name_one" class="checkbox multiple" value="one">' +
         '<label for="id_name_one">Item one</label>' +
-        '<input type="checkbox" name="name" id="id_name_two" value="two"' +
+        '<input type="checkbox" name="name" id="id_name_two" class="checkbox multiple" value="two"' +
         ' checked="checked">' +
         '<label for="id_name_two">Item two</label>' +
-        '<input type="checkbox" name="name" id="id_name_three" value="three"' +
+        '<input type="checkbox" name="name" id="id_name_three" class="checkbox multiple" value="three"' +
         ' checked="checked">' +
         '<label for="id_name_three">Item three</label>'
     );
-    test.equals(forms.widgets.multipleCheckbox().type, 'multipleCheckbox');
-    test.done();
+    assert.eql(forms.widgets.multipleCheckbox().type, 'multipleCheckbox');
+    
 };
 
-exports['multipleRadio'] = function(test){
+exports['multipleRadio'] = function(assert){
     var w = forms.widgets.multipleRadio();
     var field = {
         choices: {one:'Item one',two:'Item two',three:'Item three'},
         value: 'two'
     };
-    test.equals(
+    assert.eql(
         w.toHTML('name', field),
-        '<input type="radio" name="name" id="id_name_one" value="one">' +
+        '<input type="radio" name="name" id="id_name_one" class="radio multiple" value="one">' +
         '<label for="id_name_one">Item one</label>' +
-        '<input type="radio" name="name" id="id_name_two" value="two"' +
+        '<input type="radio" name="name" id="id_name_two" class="radio multiple" value="two"' +
         ' checked="checked">' +
         '<label for="id_name_two">Item two</label>' +
-        '<input type="radio" name="name" id="id_name_three" value="three">' +
+        '<input type="radio" name="name" id="id_name_three" class="radio multiple" value="three">' +
         '<label for="id_name_three">Item three</label>'
     );
-    test.equals(forms.widgets.multipleRadio().type, 'multipleRadio');
-    test.done();
+    assert.eql(forms.widgets.multipleRadio().type, 'multipleRadio');
+    
 };
 
-exports['multipleRadio mutliple selected'] = function(test){
+exports['multipleRadio mutliple selected'] = function(assert){
     var w = forms.widgets.multipleRadio();
     var field = {
         choices: {one:'Item one',two:'Item two',three:'Item three'},
         value: ['two', 'three']
     };
-    test.equals(
+    assert.eql(
         w.toHTML('name', field),
-        '<input type="radio" name="name" id="id_name_one" value="one">' +
+        '<input type="radio" name="name" id="id_name_one" class="radio multiple" value="one">' +
         '<label for="id_name_one">Item one</label>' +
-        '<input type="radio" name="name" id="id_name_two" value="two"' +
+        '<input type="radio" name="name" id="id_name_two" class="radio multiple" value="two"' +
         ' checked="checked">' +
         '<label for="id_name_two">Item two</label>' +
-        '<input type="radio" name="name" id="id_name_three" value="three"' +
+        '<input type="radio" name="name" id="id_name_three" class="radio multiple" value="three"' +
         ' checked="checked">' +
         '<label for="id_name_three">Item three</label>'
     );
-    test.equals(forms.widgets.multipleRadio().type, 'multipleRadio');
-    test.done();
+    assert.eql(forms.widgets.multipleRadio().type, 'multipleRadio');
+    
 };
 
-exports['multipleSelect'] = function(test){
-    test.equals(
+exports['multipleSelect'] = function(assert){
+    assert.eql(
         forms.widgets.multipleSelect().toHTML('name', {choices: {
             val1:'text1',
             val2:'text2'
         }}),
-        '<select multiple="mulitple" name="name" id="id_name">' +
+        '<select multiple="mulitple" name="name" id="id_name" class="select multiple">' +
             '<option value="val1">text1</option>' +
             '<option value="val2">text2</option>' +
         '</select>'
     );
-    test.equals(
+    assert.eql(
         forms.widgets.multipleSelect({classes: ['one', 'two']}).toHTML('name', {
             choices: {
                 val1:'text1',
@@ -205,6 +205,6 @@ exports['multipleSelect'] = function(test){
             '<option value="val3" selected="selected">text3</option>' +
         '</select>'
     );
-    test.equals(forms.widgets.multipleSelect().type, 'multipleSelect');
-    test.done();
+    assert.eql(forms.widgets.multipleSelect().type, 'multipleSelect');
+    
 };
