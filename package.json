@@ -10,7 +10,7 @@
     "node": ">= 0.2.6"
   },
   "dependencies": {
-    "formidable": "latest",
+    "formidable": "1.0.9",
     "express": "2.5.x",
     "connect": "1.8.x"
   },
